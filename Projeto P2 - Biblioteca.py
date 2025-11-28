@@ -21,7 +21,7 @@ URL_IMPORTACAO = "https://openlibrary.org/search.json?q=technology&limit=10"
 # ==============================================================================
 # CAMADA DE DADOS (BANCO DE DADOS)
 # ==============================================================================
-
+#def menu
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
@@ -217,16 +217,22 @@ def menu():
             <p>Controle o acervo de livros.</p>
             <a href="{{ url_for('listar_livros') }}" class="btn btn-info">Acessar</a>
         </div>
-        <div style="background: #e8f8f5; padding: 20px; border-radius: 8px;">
+        <div style="background: #fef9e7; padding: 20px; border-radius: 8px;">
             <h3>Importação Web</h3>
             <p>Buscar livros na Open Library.</p>
-            <a href="{{ url_for('importar_dados') }}" class="btn btn-primary">Acessar</a>
+            <a href="{{ url_for('importar_dados') }}" class="btn btn-warning">Acessar</a>
         </div>
         <div style="background: #fef9e7; padding: 20px; border-radius: 8px;">
             <h3>Exportação</h3>
             <p>Baixar backup completo em ZIP.</p>
             <a href="{{ url_for('exportar_dados') }}" class="btn btn-warning">Exportar Dados</a>
         </div>
+            <div style="background: #e8f8f5; padding: 20px; border-radius: 8px;">
+            <h3>Gerenciar Usuários</h3>
+            <p>Controle de acesso ao sistema.</p>
+            <a href="{{ url_for('listar_usuarios') }}" class="btn btn-primary">Acessar</a>
+        </div>
+                       
     </div>
     """)
 
@@ -235,14 +241,18 @@ def sobre():
     if not session.get('user_id'): return redirect(url_for('login'))
     return render_page("""
     <h2>Sobre o Projeto</h2>
-    <p><strong>Tema Escolhido:</strong> Sistema de Gerenciamento de Biblioteca.</p>
-    <p><strong>Objetivo:</strong> Controlar o cadastro de livros e consumir dados da Open Library.</p>
+    <p style="text-align: justify; line-height: 1.6;">
+            Este projeto tem como objetivo desenvolver uma aplicação Web completa utilizando a linguagem <strong>Python</strong> e o framework Flask. 
+            O sistema visa solucionar o controle de acervos bibliográficos, permitindo o gerenciamento persistente de autores, livros e usuários através de um banco de dados relacional.
+        </p>
+        <p style="text-align: justify; line-height: 1.6;">
+            Além das operações fundamentais de cadastro (CRUD), a aplicação demonstra interoperabilidade de sistemas ao consumir dados externos da API pública da <em>Open Library</em> e oferece funcionalidades avançadas de backup (importação e exportação de dados em JSON/ZIP).
+        </p>
     <hr>
     <h3>Desenvolvedores</h3>
     <ul>
         <li><strong>Nome:</strong> [Tamires de Sousa Bassi]
     </ul>
-    <p>Disciplina: Tópicos Especiais em Informática</p>
     """)
 
 # ==================== CRUD AUTORES ====================
@@ -487,6 +497,85 @@ def exportar_dados():
     memory_file.seek(0)
     
     return send_file(memory_file, mimetype='application/zip', as_attachment=True, download_name='backup_completo.zip')
+
+# ==================== CRUD USUÁRIOS (ADICIONADO PARA COMPLETAR REQUISITOS) ====================
+
+@app.route('/usuarios')
+def listar_usuarios():
+    if not session.get('user_id'): return redirect(url_for('login'))
+    conn = get_db_connection()
+    usuarios = conn.execute('SELECT * FROM usuarios').fetchall()
+    conn.close()
+    return render_page("""
+    <h2>Gerenciamento de Usuários</h2>
+    <a href="{{ url_for('criar_usuario') }}" class="btn btn-primary">+ Novo Usuário</a>
+    <table>
+        <tr><th>ID</th><th>Username</th><th>Ações</th></tr>
+        {% for u in usuarios %}
+        <tr>
+            <td>{{ u['id'] }}</td>
+            <td>{{ u['username'] }}</td>
+            <td>
+                {% if u['username'] != 'admin' %}
+                <a href="{{ url_for('deletar_usuario', id=u['id']) }}" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja remover este usuário?')">Excluir</a>
+                {% else %}
+                <span style="color: grey; font-style: italic;">(Sistema)</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    """, usuarios=usuarios)
+
+@app.route('/usuarios/novo', methods=('GET', 'POST'))
+def criar_usuario():
+    if not session.get('user_id'): return redirect(url_for('login'))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO usuarios (username, password) VALUES (?, ?)', (username, password))
+            conn.commit()
+            flash(f'Usuário {username} criado com sucesso!')
+            return redirect(url_for('listar_usuarios'))
+        except sqlite3.IntegrityError:
+            flash('Erro: Nome de usuário já existe!')
+        finally:
+            conn.close()
+            
+    return render_page("""
+    <h2>Novo Usuário</h2>
+    <form method="post">
+        <div class="form-group">
+            <label>Nome de Usuário:</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Senha:</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar Usuário</button>
+        <a href="{{ url_for('listar_usuarios') }}" class="btn btn-warning">Cancelar</a>
+    </form>
+    """)
+
+@app.route('/usuarios/<int:id>/deletar')
+def deletar_usuario(id):
+    if not session.get('user_id'): return redirect(url_for('login'))
+    
+    # Impede que o usuário se delete (opcional, mas recomendado)
+    if id == session.get('user_id'):
+        flash('Você não pode excluir a si mesmo enquanto está logado!')
+        return redirect(url_for('listar_usuarios'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM usuarios WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('Usuário removido!')
+    return redirect(url_for('listar_usuarios'))
 
 if __name__ == '__main__':
     if not os.path.exists(DB_NAME):
