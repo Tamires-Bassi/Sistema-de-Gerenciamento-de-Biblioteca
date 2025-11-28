@@ -242,7 +242,7 @@ def sobre():
     return render_page("""
     <h2>Sobre o Projeto</h2>
     <p style="text-align: justify; line-height: 1.6;">
-            Este projeto tem como objetivo desenvolver uma aplicação Web completa utilizando a linguagem <strong>Python</strong> e o framework Flask. 
+            Este projeto tem como objetivo desenvolver uma aplicação Web completa utilizando a linguagem <strong>Python</strong> e o microframework <strong>Flask</strong>. 
             O sistema visa solucionar o controle de acervos bibliográficos, permitindo o gerenciamento persistente de autores, livros e usuários através de um banco de dados relacional.
         </p>
         <p style="text-align: justify; line-height: 1.6;">
@@ -251,7 +251,7 @@ def sobre():
     <hr>
     <h3>Desenvolvedores</h3>
     <ul>
-        <li><strong>Nome:</strong> [Tamires de Sousa Bassi]
+        <li><strong>Nome:</strong> [Tamires de Sousa Bassi] | <strong>RA:</strong> [22840482523039]
     </ul>
     """)
 
