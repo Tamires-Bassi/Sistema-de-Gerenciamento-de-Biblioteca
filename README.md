@@ -57,8 +57,8 @@ Para executar este projeto, você precisará ter instalado em sua máquina:
     ```bash
     python "Projeto P2 - Biblioteca.py"
 
-4. **Acesse no Navegador:** O servidor iniciará localmente. Abra o endereço:
-    http://127.0.0.1:5000
+4. **Acesse no Navegador:** 
+    O servidor iniciará localmente.
 
     usuário: admin 
     
