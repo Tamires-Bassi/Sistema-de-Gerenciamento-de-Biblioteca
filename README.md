@@ -60,5 +60,6 @@ Para executar este projeto, você precisará ter instalado em sua máquina:
 4. **Acesse no Navegador:** O servidor iniciará localmente. Abra o endereço:
     http://127.0.0.1:5000
 
-    usuário: admin
-    senha: admingit
+    usuário: admin 
+    
+    senha: admin   
